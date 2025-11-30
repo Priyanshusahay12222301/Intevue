@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
@@ -12,8 +13,19 @@ const io = socketIo(server, {
   }
 });
 
+// Debug logging for deployment
+console.log('__dirname:', __dirname);
+console.log('Process cwd:', process.cwd());
+const buildPath = path.join(__dirname, 'frontend/build');
+const indexPath = path.join(buildPath, 'index.html');
+console.log('Build path:', buildPath);
+console.log('Index path:', indexPath);
+console.log('Build path exists:', fs.existsSync(buildPath));
+console.log('Index.html exists:', fs.existsSync(indexPath));
+
 // Serve static files from React build
-app.use(express.static(path.join(__dirname, 'frontend/build')));
+app.use(express.static(buildPath));
+console.log('Serving static files from:', buildPath);
 
 // Store active polls and connected users
 let activePoll = null;
@@ -255,7 +267,14 @@ function endPoll() {
 
 // All other routes serve the React app
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend/build', 'index.html'));
+  const indexPath = path.join(__dirname, 'frontend/build', 'index.html');
+  console.log('Serving index.html from:', indexPath);
+  res.sendFile(indexPath, (err) => {
+    if (err) {
+      console.error('Error serving index.html:', err);
+      res.status(500).send('Error loading application');
+    }
+  });
 });
 
 const PORT = process.env.PORT || 5000;
