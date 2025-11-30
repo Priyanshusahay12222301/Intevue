@@ -21,7 +21,7 @@ class SocketService {
       return this.socket;
     }
 
-    this.socket = io(process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000', {
+    this.socket = io(process.env.REACT_APP_BACKEND_URL || window.location.origin, {
       transports: ['websocket'],
       reconnection: true,
       reconnectionDelay: 1000,

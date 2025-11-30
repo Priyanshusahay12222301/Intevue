@@ -1,0 +1,15 @@
+# Live Polling System
+
+A real-time polling system built with React and Node.js
+
+## Deployment
+
+This is deployed as a full-stack application.
+
+## Setup
+
+```bash
+npm install
+npm run build
+npm start
+```

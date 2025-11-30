@@ -1,44 +1,27 @@
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
-const cors = require('cors');
-const mongoose = require('mongoose');
-require('dotenv').config();
-
-// Import models
-const Poll = require('./models/Poll');
-const Student = require('./models/Student');
+const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: [
-      "http://localhost:3000", 
-      "https://live-polling-system-frontend.vercel.app",
-      /\.vercel\.app$/,
-      /\.netlify\.app$/
-    ],
+    origin: "*",
     methods: ["GET", "POST"]
   }
 });
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/polling-system')
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('MongoDB connection error:', err));
+// Serve static files from React build
+app.use(express.static(path.join(__dirname, 'frontend/build')));
 
 // Store active polls and connected users
 let activePoll = null;
-let connectedUsers = new Map(); // socketId -> {name, role, answered}
-let pollResults = new Map(); // option -> count
+let connectedUsers = new Map();
+let pollResults = new Map();
 let pollHistory = [];
 
-// Routes
+// API Routes
 app.get('/api/health', (req, res) => {
   res.json({ message: 'Polling System Backend is running!' });
 });
@@ -178,7 +161,7 @@ io.on('connection', (socket) => {
     const answeredStudents = students.filter(s => s.answered);
     
     if (students.length > 0 && answeredStudents.length === students.length) {
-      setTimeout(() => endPoll(), 1000); // Small delay to show final results
+      setTimeout(() => endPoll(), 1000);
     }
   });
 
@@ -269,6 +252,11 @@ function endPoll() {
     activePoll = null;
   }
 }
+
+// All other routes serve the React app
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend/build', 'index.html'));
+});
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
