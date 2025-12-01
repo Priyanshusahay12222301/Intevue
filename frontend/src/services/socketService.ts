@@ -21,11 +21,10 @@ class SocketService {
       return this.socket;
     }
 
-    // For Vercel deployment, use the API path for Socket.io
+    // Connect to backend server
     const socketURL = process.env.REACT_APP_BACKEND_URL || window.location.origin;
     
     this.socket = io(socketURL, {
-      path: '/api/socket',
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionDelay: 1000,
